@@ -1,0 +1,9 @@
+pipeline{
+    agent any
+
+    stages{
+        stage('Git checkout'){
+            git branch: 'ci-jenkins', credentialsId: 'Githubkey', url: 'git@github.com:Ranjith-kumar533/vprofile-project-hkh.git'
+        }
+    }
+}
