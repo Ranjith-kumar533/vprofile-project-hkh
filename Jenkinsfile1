@@ -12,6 +12,18 @@ pipeline{
             }
         }
 
+        stage('Unit test'){
+            steps{
+                sh 'mvn test'
+            }
+        }
+
+         stage('Integration test'){
+            steps{
+                sh 'mvn verify -DskipUnitTests'
+            }
+        }
+
         stage('Build'){
             steps{
                 sh 'mvn clean install -DskipTests'
