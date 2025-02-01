@@ -3,6 +3,7 @@ pipeline {
     
     tools {
         maven "maven"
+        jdk "jenkins-jdk"
             }
 
     stages {
@@ -38,7 +39,6 @@ pipeline {
         stage('Sonar Analysis') {
             environment {
                 scannerHome = tool 'sonar'
-                JAVA_HOME = tool name: 'jenkins-jdk', type: 'JDK'
             }
             steps {
                 withSonarQubeEnv('sonarserver') {  // Corrected SonarQube server reference
