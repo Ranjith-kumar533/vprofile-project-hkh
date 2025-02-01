@@ -3,7 +3,7 @@ pipeline {
     
     tools {
         maven "maven"
-        hudson.plugins.sonar.SonarRunnerInstallation "sonar"  // Corrected SonarScanner tool reference
+        SonarQube scanner "sonar"  // Corrected SonarScanner tool reference
     }
 
     stages {
@@ -38,7 +38,7 @@ pipeline {
 
         stage('Sonar Analysis') {
             environment {
-                scannerHome = tool 'SonarScanner'  // Corrected tool name
+                scannerHome = tool 'sonar'  // Corrected tool name
             }
             steps {
                 withSonarQubeEnv('sonarserver') {  // Corrected SonarQube server reference
