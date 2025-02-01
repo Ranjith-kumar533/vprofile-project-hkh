@@ -3,7 +3,7 @@ pipeline {
     
     tools {
         maven "maven"
-        sonarQubeScanner "SonarScanner"  // Corrected SonarScanner tool reference
+        hudson.plugins.sonar.SonarRunnerInstallation "sonar"  // Corrected SonarScanner tool reference
     }
 
     stages {
