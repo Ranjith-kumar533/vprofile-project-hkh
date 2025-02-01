@@ -1,34 +1,31 @@
-pipeline{
+pipeline {
     agent any
     
     tools {
         maven "maven"
-    }
-    
-    environment{
-        SONARSCANNER = 'sonar'
+        sonar "sonar"  // Corrected SonarScanner tool reference
     }
 
-    stages{
-        stage('Git checkout'){
-            steps{
-            git branch: 'ci-jenkins', credentialsId: 'Githubkey', url: 'git@github.com:Ranjith-kumar533/vprofile-project-hkh.git'
+    stages {
+        stage('Git Checkout') {
+            steps {
+                git branch: 'ci-jenkins', credentialsId: 'Githubkey', url: 'git@github.com:Ranjith-kumar533/vprofile-project-hkh.git'
             }
         }
 
-        stage('Unit test'){
-            steps{
+        stage('Unit Test') {
+            steps {
                 sh 'mvn test'
             }
         }
 
-         stage('Integration test'){
-            steps{
+        stage('Integration Test') {
+            steps {
                 sh 'mvn verify -DskipUnitTests'
             }
         }
 
-        stage ('CODE ANALYSIS WITH CHECKSTYLE'){
+        stage('Code Analysis with Checkstyle') {
             steps {
                 sh 'mvn checkstyle:checkstyle'
             }
@@ -39,26 +36,29 @@ pipeline{
             }
         }
 
-               stage('Sonar Analysis') {
+        stage('Sonar Analysis') {
             environment {
-                scannerHome = tool "${SONARSCANNER}"
+                scannerHome = tool 'sonar'  // Corrected tool name
             }
             steps {
-               withSonarQubeEnv("${SONARSERVER}") {
-                   sh '''${scannerHome}/bin/sonar-scanner -Dsonar.projectKey=vprofile \
-                   -Dsonar.projectName=vprofile \
-                   -Dsonar.projectVersion=1.0 \
-                   -Dsonar.sources=src/ \
-                   -Dsonar.java.binaries=target/test-classes/com/visualpathit/account/controllerTest/ \
-                   -Dsonar.junit.reportsPath=target/surefire-reports/ \
-                   -Dsonar.jacoco.reportsPath=target/jacoco.exec \
-                   -Dsonar.java.checkstyle.reportPaths=target/checkstyle-result.xml'''
-              }
+                withSonarQubeEnv('sonarserver') {  // Corrected SonarQube server reference
+                    sh '''
+                    ${scannerHome}/bin/sonar-scanner \
+                        -Dsonar.projectKey=vprofile \
+                        -Dsonar.projectName=vprofile \
+                        -Dsonar.projectVersion=1.0 \
+                        -Dsonar.sources=src/ \
+                        -Dsonar.java.binaries=target/classes/ \
+                        -Dsonar.junit.reportsPath=target/surefire-reports/ \
+                        -Dsonar.jacoco.reportsPath=target/jacoco.exec \
+                        -Dsonar.java.checkstyle.reportPaths=target/checkstyle-result.xml
+                    '''
+                }
             }
         }
-        
-        stage('Build'){
-            steps{
+
+        stage('Build') {
+            steps {
                 sh 'mvn clean install -DskipTests'
             }
             post {
