@@ -37,7 +37,8 @@ pipeline {
 
         stage('Sonar Analysis') {
             environment {
-                scannerHome = tool 'sonar'  // Corrected tool name
+                scannerHome = tool 'sonar'
+                JAVA_HOME = tool name: 'JDK 11', type: 'JDK'
             }
             steps {
                 withSonarQubeEnv('sonarserver') {  // Corrected SonarQube server reference
