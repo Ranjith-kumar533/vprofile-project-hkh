@@ -2,89 +2,80 @@ def COLOR_MAP = [
     'SUCCESS': 'good', 
     'FAILURE': 'danger',
 ]
-
 pipeline {
     agent any
-    
     tools {
-        maven "maven"
-        jdk "jenkins-jdk"
-            }
-
+        maven "MAVEN3"
+        jdk "OracleJDK8"
+    }
+    
     environment {
         SNAP_REPO = 'vprofile-snapshot'
 		NEXUS_USER = 'admin'
-		NEXUS_PASS = 'admin'
+		NEXUS_PASS = 'admin123'
 		RELEASE_REPO = 'vprofile-release'
-		CENTRAL_REPO = 'vprofile-maven-central'
-		NEXUSIP = '192.168.56.13'
+		CENTRAL_REPO = 'vpro-maven-central'
+		NEXUSIP = '172.31.5.4'
 		NEXUSPORT = '8081'
 		NEXUS_GRP_REPO = 'vpro-maven-group'
-        NEXUS_LOGIN = 'Nexus-creds'
-        registryCredential = 'ecr:us-EAST-1:AWS-access-key'
-        appRegistry = '891612579227.dkr.ecr.ap-southeast-2.amazonaws.com/vprofile-app'
-        vprofileRegistry = "https://891612579227.dkr.ecr.ap-southeast-2.amazonaws.com/vprofile-app"
+        NEXUS_LOGIN = 'nexuslogin'
+        SONARSERVER = 'sonarserver'
+        SONARSCANNER = 'sonarscanner'
+        registryCredential = 'ecr:us-west-1:awscreds'
+        appRegistry = '951401132355.dkr.ecr.us-west-1.amazonaws.com/vprofileappimg'
+        vprofileRegistry = "https://951401132355.dkr.ecr.us-west-1.amazonaws.com"
     }
 
     stages {
-        stage('Git Checkout') {
+        stage('Build'){
             steps {
-                git branch: 'ci-jenkins', credentialsId: 'Githubkey', url: 'git@github.com:Ranjith-kumar533/vprofile-project-hkh.git'
-            }
-        }
-
-        stage('Unit Test') {
-            steps {
-                sh 'mvn test'
-            }
-        }
-
-        stage('Integration Test') {
-            steps {
-                sh 'mvn verify -DskipUnitTests'
-            }
-        }
-
-        stage('Code Analysis with Checkstyle') {
-            steps {
-                sh 'mvn checkstyle:checkstyle'
+                sh 'mvn -s settings.xml -DskipTests install'
             }
             post {
                 success {
-                    echo 'Generated Analysis Result'
+                    echo "Now Archiving."
+                    archiveArtifacts artifacts: '**/*.war'
                 }
+            }
+        }
+
+        stage('Test'){
+            steps {
+                sh 'mvn -s settings.xml test'
+            }
+
+        }
+
+        stage('Checkstyle Analysis'){
+            steps {
+                sh 'mvn -s settings.xml checkstyle:checkstyle'
             }
         }
 
         stage('Sonar Analysis') {
             environment {
-                scannerHome = tool 'sonar'
+                scannerHome = tool "${SONARSCANNER}"
             }
             steps {
-                withSonarQubeEnv('sonarserver') {  // Corrected SonarQube server reference
-                    sh '''
-                    ${scannerHome}/bin/sonar-scanner \
-                        -Dsonar.projectKey=vprofile \
-                        -Dsonar.projectName=vprofile \
-                        -Dsonar.projectVersion=1.0 \
-                        -Dsonar.sources=src/ \
-                        -Dsonar.java.binaries=target/classes/ \
-                        -Dsonar.junit.reportsPath=target/surefire-reports/ \
-                        -Dsonar.jacoco.reportsPath=target/jacoco.exec \
-                        -Dsonar.java.checkstyle.reportPaths=target/checkstyle-result.xml
-                    '''
-                }
+               withSonarQubeEnv("${SONARSERVER}") {
+                   sh '''${scannerHome}/bin/sonar-scanner -Dsonar.projectKey=vprofile \
+                   -Dsonar.projectName=vprofile \
+                   -Dsonar.projectVersion=1.0 \
+                   -Dsonar.sources=src/ \
+                   -Dsonar.java.binaries=target/test-classes/com/visualpathit/account/controllerTest/ \
+                   -Dsonar.junit.reportsPath=target/surefire-reports/ \
+                   -Dsonar.jacoco.reportsPath=target/jacoco.exec \
+                   -Dsonar.java.checkstyle.reportPaths=target/checkstyle-result.xml'''
+              }
             }
         }
 
-        stage('Build') {
+        stage("Quality Gate") {
             steps {
-                sh 'mvn clean install -DskipTests'
-            }
-            post {
-                success {
-                    echo 'Now Archiving...'
-                    archiveArtifacts artifacts: '**/target/*.war'
+                timeout(time: 1, unit: 'HOURS') {
+                    // Parameter indicates whether to set pipeline to UNSTABLE if Quality Gate fails
+                    // true = set pipeline to UNSTABLE, false = don't
+                    waitForQualityGate abortPipeline: true
                 }
             }
         }
@@ -129,9 +120,8 @@ pipeline {
         }
 
 
-     
     }
-       post {
+    post {
         always {
             echo 'Slack Notifications.'
             slackSend channel: '#jenkinscicd',
