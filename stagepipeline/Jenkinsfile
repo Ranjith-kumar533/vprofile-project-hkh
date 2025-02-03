@@ -75,21 +75,21 @@ pipeline {
                     '''
                 }
             }
-        }
+        }*/
 
-        stage('Build') {
+        /*stage('Build') {
             steps {
                 sh 'mvn clean install -DskipTests'
             }
             post {
                 success {
                     echo 'Now Archiving...'
-                    //archiveArtifacts artifacts: '**/target/*.war'
+                    //archiveArtifacts artifacts: '**//*.war'
                 }
             }
-        }
+        }*/
 
-        stage("UploadArtifact"){
+        /*stage("UploadArtifact"){
             steps{
                 nexusArtifactUploader(
                   nexusVersion: 'nexus3',
