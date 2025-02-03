@@ -21,9 +21,9 @@ pipeline {
 		NEXUSPORT = '8081'
 		NEXUS_GRP_REPO = 'vpro-maven-group'
         NEXUS_LOGIN = 'Nexus-creds'
-        registryCredential = 'ecr:us-EAST-1:AWS-access-key'
-        appRegistry = '891612579227.dkr.ecr.ap-southeast-2.amazonaws.com/vprofile-app'
-        vprofileRegistry = "https://891612579227.dkr.ecr.ap-southeast-2.amazonaws.com/vprofile-app"
+        registryCredential = 'ecr:us-east-1:AWS-access-key'
+        appRegistry = '891612579227.dkr.ecr.us-east-1.amazonaws.com/vprofile-app'
+        vprofileRegistry = "https://891612579227.dkr.ecr.us-east-1.amazonaws.com/vprofile-app"
     }
 
     stages {
